@@ -65,4 +65,13 @@ BEGIN {InsertionSort}
     END; {WHILE} 
 
 	{Печать списка начиная с Arr[First]} 
+	Index := First;         
+	WHILE Index <> ListEnd  
+	DO                      
+  	BEGIN                 
+    	WRITE(Arr[Index].Key);  
+    	Index := Arr[Index].Next
+  	END;                      
+	WRITELN
+
 END.  {InsertionSort}                                                                                      

@@ -17,11 +17,10 @@ VAR
   Found: BOOLEAN;                             
 BEGIN {InsertionSort}                         
   First := 0;                                 
-  Index := 0; 
-                                
+  Index := 0;                                 
   WHILE NOT EOLN                              
   DO                                          
-    BEGIN {WHILE}                                       
+    BEGIN {WHILE}                
       {Помещать запись в список, если позволяет пространство, 
 			 иначе игнорировать и сообщать об ошибке}                         
       Index := Index + 1;                                                                                  
@@ -29,13 +28,12 @@ BEGIN {InsertionSort}
       THEN                                                                                                 
         BEGIN                                                                                              
           READ(Extra);                                                                                     
-          WRITELN('Сообщение содержит: ', Extra, '. Игнорируем.');              
+          WRITELN('Сообщение содержит: ', Extra, '. Игнорируем.')            
         END                                                                                                
       ELSE                                                                                                 
         BEGIN                                                                                              
-          READ(Arr[Index].Key);                                                                            
-          {Включаем Arr[Index] в связанный список}                               
-        END                                                                                               
-    END; {WHILE}                                
-             
+          READ(Arr[Index].Key); 
+					{Вставляем запись в двусвязанный список}        
+        END                                                                                              
+    END {WHILE} 
 END.  {InsertionSort}                                                                                      
