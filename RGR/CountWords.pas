@@ -1,12 +1,19 @@
 PROGRAM CountWords(INPUT, OUTPUT); 
 USES 
   TextStat;
+VAR 
+  InpPath, OutPath: STRING;
 BEGIN                     
+  WRITELN('Put the path for the INPUT file');
+  READLN(InpPath);                            
+  WRITELN('Put the path for the OUTPUT file');
+  READLN(OutPath);
+
   WRITELN('Collecting stat...');
-  CollectStat('Input.txt');
+  CollectStat(InpPath);
   WRITELN('Collected!');      
 
   WRITELN('Saving...');
-  SaveStat('Output.txt');
+  SaveStat(OutPath);
   WRITELN('Saved!');
 END.

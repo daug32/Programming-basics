@@ -83,30 +83,26 @@ BEGIN {SaveElement}
     Prev^.RightTree := Curr;
 END; {SaveElement}
 
-PROCEDURE PrintTree(Curr: NodePtr);
+PROCEDURE SaveConatiner(OutPath: STRING);
+VAR 
+  OutFile: TEXT;
+
+PROCEDURE SaveTree(Curr: NodePtr);
 BEGIN                                    
   IF Curr^.LeftTree <> NIL
   THEN
-    PrintTree(Curr^.LeftTree);
-  WRITELN(Curr^.Word, ': ', Curr^.Count);
+    SaveTree(Curr^.LeftTree);
+  WRITELN(OutFile, Curr^.Word, ' ', Curr^.Count);
   IF Curr^.RightTree <> NIL
   THEN
-    PrintTree(Curr^.RightTree);
+    SaveTree(Curr^.RightTree)
 END;
 
-PROCEDURE PrintContainer;
 BEGIN
-  PrintTree(Head)
-END;
-
-PROCEDURE SaveConatiner(OutPath: STRING);
-VAR
-  OutFile: TEXT;
-BEGIN
-  PrintContainer;
-  {ASSIGN(OutFile, OutPath); 
+  ASSIGN(OutFile, OutPath); 
   REWRITE(OutFile);
-  CLOSE(OutFile);  }
+  SaveTree(Head);
+  CLOSE(OutFile)
 END;
 
 BEGIN {TreeContainer}
