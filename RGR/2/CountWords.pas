@@ -9,8 +9,6 @@ BEGIN
   WRITELN('Put the path for the OUTPUT file');
   READLN(OutPath);
 
-  SetFileMaxSize(-1);
-
   WRITELN('Collecting stat...');
   CollectStat(InpPath);
   WRITELN('Saving...');

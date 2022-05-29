@@ -1,9 +1,10 @@
 UNIT StringHandler;
 INTERFACE 
-
-FUNCTION ToLower(Str: STRING) : STRING;
+                                       
 FUNCTION IsUpper(Ch: CHAR) : BOOLEAN;
-FUNCTION IsWordChar(Ch: CHAR) : BOOLEAN;
+FUNCTION ToLower(Str: STRING) : STRING;
+FUNCTION IsWordChar(Ch: CHAR) : BOOLEAN;             
+FUNCTION ReadWord(VAR Inp: TEXT) : STRING;
 FUNCTION StringComparer(VAR A, B: STRING) : INTEGER; 
                                        
 IMPLEMENTATION  
@@ -96,6 +97,40 @@ BEGIN {Comparer}
   
   StringComparer := 0;  
 END; {Comparer} 
+
+FUNCTION ReadWord(VAR Inp: TEXT) : STRING;
+VAR
+  Ch, PrevCh: CHAR;
+  Word: STRING;  
+  IsWord: BOOLEAN;
+BEGIN {ReadWord}  
+  Ch := ' ';      
+  PrevCh := ' ';    
+  Word := '';
+  IsWord := TRUE;
+
+  WHILE (NOT IsWordChar(Ch)) AND (NOT EOF(Inp))
+  DO 
+    READ(Inp, Ch);
+
+  WHILE IsWord AND (NOT EOF(Inp)) 
+  DO 
+    BEGIN                   
+      PrevCh := Ch;
+      READ(Inp, Ch);
+      IsWord := IsWordChar(Ch);
+
+      {This willn't save words like this 
+      'some-' with '-' at the end}
+      IF IsWord OR (PrevCh <> '-')
+      THEN          
+        Word := Word + PrevCh;
+
+      IsWord := IsWord OR (Ch = '-')
+    END;
+  
+  ReadWord := Word
+END; {ReadWord}
 
 BEGIN {StringHandler}
 END. {StringHandler}

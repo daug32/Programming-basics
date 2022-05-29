@@ -16,22 +16,27 @@ TYPE
             RightTree: NodePtr;
           END; 
 VAR 
-  Head: ^Node;
+  Head: NodePtr;  
+
+PROCEDURE ContructNode(VAR Element: NodePtr; VAR Word: STRING);
+BEGIN
+  NEW(Element); 
+  Element^.Word := Word;
+  Element^.Count := 1;
+  Element^.LeftTree := NIL;
+  Element^.RightTree := NIL
+END;
 
 PROCEDURE InsertWord(Word: STRING);
 VAR   
-  Prev, Curr: ^Node;               
-  Comparing: INTEGER; 
+  Prev, Curr: NodePtr;               
+  Comparing: INTEGER;  
 BEGIN {SaveElement} 
   {If the container is empty}
   IF Head = NIL
   THEN
     BEGIN 
-      NEW(Head);   
-      Head^.Word := Word;
-      Head^.Count := 1;
-      Head^.LeftTree := NIL;
-      Head^.RightTree := NIL;
+      ContructNode(Head, Word);   
       EXIT
     END; 
                               
@@ -67,15 +72,9 @@ BEGIN {SaveElement}
       Prev := Curr;
       Curr := Curr^.RightTree
     END;
-  
-  {Construct new node}
-  NEW(Curr);
-  Curr^.Word := Word;
-  Curr^.Count := 1; 
-  Curr^.LeftTree := NIL;
-  Curr^.RightTree := NIL;                     
-
-  {Set pointer of the previous node to the current one}
+   
+  {Construct new leaf} 
+  ContructNode(Curr, Word); 
   IF Comparing = -1
   THEN
     Prev^.LeftTree := Curr
