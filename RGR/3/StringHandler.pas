@@ -5,6 +5,8 @@ FUNCTION IsWordChar(Ch: CHAR) : BOOLEAN;
 FUNCTION ToLower(Str: STRING) : STRING;
 FUNCTION StringComparer(VAR A, B: STRING) : INTEGER;
 FUNCTION ReadWord(VAR Inp: TEXT) : STRING;
+FUNCTION ToInt(Str: STRING) : INTEGER;
+FUNCTION GetBase(Word: STRING) : STRING;
                                        
 IMPLEMENTATION          
 
@@ -136,6 +138,50 @@ BEGIN {ReadWord}
   
   ReadWord := Word
 END; {ReadWord}
+
+FUNCTION ToInt(Str: STRING) : INTEGER;
+VAR                       
+  I, Len: INTEGER;        
+  MaxNumber: INTEGER; 
+  Digit, Res: INTEGER; 
+  MinDigitCode: INTEGER;
+BEGIN {ToInt}
+  Res := 0;
+  ToInt := 0;
+  Len := LENGTH(Str); 
+  MaxNumber := 32767;
+  MinDigitCode := ORD('0');
+
+  FOR I := 1 TO Len
+  DO 
+    BEGIN   
+      Digit := ORD(Str[I]) - MinDigitCode;
+
+      IF (Digit < 0) OR
+         (Digit > 9)
+      THEN 
+        BEGIN
+          WRITELN('Failed ToInt convertion: Invalid string: ', Str);
+          EXIT
+        END;
+  
+      IF ( Res > ((MaxNumber - Digit) DIV 10) )
+      THEN 
+        BEGIN  
+          WRITELN('Failed ToInt convertion: Integer overflow');   
+          EXIT
+        END;
+
+      Res := Res * 10 + Digit
+    END;
+
+  ToInt := Res
+END; {ToInt}
+
+FUNCTION GetBase(Word: STRING) : STRING;
+BEGIN {GetBase}
+  GetBase := '';
+END; {GetBase}
 
 BEGIN {StringHandler}
 END. {StringHandler}

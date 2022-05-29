@@ -48,7 +48,7 @@ BEGIN {SaveElement}
   WHILE Curr <> NIL
   DO
     BEGIN
-      Comparing := StringComparer(Word, Curr^.Word); 
+      Comparing := StringComparer(Word, Curr^.Word);
       {Given word already exists, so 
       increase it's count and return}
       IF Comparing = 0
@@ -61,18 +61,15 @@ BEGIN {SaveElement}
       {Given word is less than the node's word}
       IF Comparing = -1
       THEN
-        BEGIN   
-          Prev := Curr;
-          Curr := Curr^.LeftTree
-        END;      
+        BEGIN           
+          Prev := Curr;                                      
+          Curr := Curr^.LeftTree;
+          CONTINUE
+        END;
 
-      {Given word is greater than the node's word}         
-      IF Comparing = 1
-      THEN      
-        BEGIN
-          Prev := Curr;
-          Curr := Curr^.RightTree
-        END
+      {Given word is greater than the node's word}           
+      Prev := Curr;
+      Curr := Curr^.RightTree
     END;
 
   {Construct new leaf} 
