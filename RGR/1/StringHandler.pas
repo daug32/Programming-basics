@@ -4,7 +4,11 @@ INTERFACE
 FUNCTION IsWordChar(Ch: CHAR) : BOOLEAN;
 FUNCTION ToLower(Str: STRING) : STRING;
 FUNCTION StringComparer(VAR A, B: STRING) : INTEGER;
-FUNCTION ReadWord(VAR Inp: TEXT) : STRING;
+     
+FUNCTION ReadWord(
+  VAR Inp: TEXT; 
+  VAR ReadedSymbols: INTEGER;
+  MaxSymbols: INTEGER) : STRING;
                                        
 IMPLEMENTATION          
 
@@ -92,7 +96,10 @@ BEGIN {Comparer}
   StringComparer := 0;  
 END; {Comparer} 
 
-FUNCTION ReadWord(VAR Inp: TEXT) : STRING;
+FUNCTION ReadWord(
+  VAR Inp: TEXT; 
+  VAR ReadedSymbols: INTEGER;
+  MaxSymbols: INTEGER) : STRING;
 VAR
   Ch, PrevCh: CHAR;
   Word: STRING;  
@@ -103,24 +110,22 @@ BEGIN {ReadWord}
   Word := '';
   IsWord := TRUE;
 
-  WHILE NOT IsWordChar(Ch)
+  WHILE (NOT IsWordChar(Ch)) AND (NOT EOF(Inp))
   DO
-    BEGIN
+    BEGIN 
       READ(Inp, Ch);
-      IF EOF(Inp) THEN EXIT
+      ReadedSymbols := ReadedSymbols + 1;
+      {Limiting the count of reading symbols}
+      IF (MaxSymbols > 0) AND
+         (ReadedSymbols > MaxSymbols)
+      THEN  
+        EXIT;
     END;
 
-  WHILE IsWord
+  WHILE IsWord AND (NOT EOF(Inp)) 
   DO 
     BEGIN                   
       PrevCh := Ch;
-
-      IF EOF(Inp) 
-      THEN 
-        BEGIN
-          ReadWord := Word;
-          EXIT
-        END;
       READ(Inp, Ch);
          
       IsWord := IsWordChar(Ch);
@@ -129,9 +134,23 @@ BEGIN {ReadWord}
       IF IsWord OR (PrevCh <> '-')
       THEN          
         Word := Word + PrevCh;
+                              
+      {Limiting the count of reading symbols} 
+      ReadedSymbols := ReadedSymbols + 1;
+      IF (MaxSymbols > 0) AND
+         (ReadedSymbols > MaxSymbols)
+      THEN  
+        BEGIN  
+          ReadWord := Word;
+          EXIT
+        END;
 
       IsWord := IsWord OR (Ch = '-')
     END;
+
+  IF IsWordChar(Ch) AND EOF(Inp) 
+  THEN 
+    Word := Word + Ch;
   
   ReadWord := Word
 END; {ReadWord}

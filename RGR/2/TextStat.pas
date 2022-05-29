@@ -16,7 +16,7 @@ TYPE
             RightTree: NodePtr
           END; 
 VAR 
-  Head: NodePtr;  
+  Head: NodePtr;
 
 PROCEDURE ContructNode(VAR Element: NodePtr; VAR Word: STRING);
 BEGIN
@@ -48,31 +48,33 @@ BEGIN {SaveElement}
   WHILE Curr <> NIL
   DO
     BEGIN
-      Comparing := StringComparer(Word, Curr^.Word);     
-
+      Comparing := StringComparer(Word, Curr^.Word); 
       {Given word already exists, so 
       increase it's count and return}
       IF Comparing = 0
       THEN
-        BEGIN    
+        BEGIN
           Curr^.Count := Curr^.Count + 1;
           EXIT
         END;
-        
+          
       {Given word is less than the node's word}
       IF Comparing = -1
       THEN
         BEGIN   
           Prev := Curr;
-          Curr := Curr^.LeftTree;
-          CONTINUE
-        END;  
-                                                               
+          Curr := Curr^.LeftTree
+        END;      
+
       {Given word is greater than the node's word}         
-      Prev := Curr;
-      Curr := Curr^.RightTree
+      IF Comparing = 1
+      THEN      
+        BEGIN
+          Prev := Curr;
+          Curr := Curr^.RightTree
+        END
     END;
-   
+
   {Construct new leaf} 
   ContructNode(Curr, Word); 
   IF Comparing = -1
@@ -88,8 +90,7 @@ VAR {CollectStat}
   Word: STRING; 
 BEGIN    
   ASSIGN(Inp, InpPath);
-  RESET(Inp);
-  
+  RESET(Inp);                      
   {Read words and save them}
   WHILE NOT EOF(Inp)
   DO 
@@ -97,9 +98,8 @@ BEGIN
       Word := ReadWord(Inp);  
       IF LENGTH(Word) > 0 
       THEN
-        InsertWord(ToLower(Word))
-    END;
-
+        InsertWord(ToLower(Word)) 
+    END;                         
   CLOSE(Inp)  
 END; {CollectStat} 
  
@@ -108,7 +108,7 @@ VAR
   OutFile: TEXT;
 
 PROCEDURE SaveTree(Curr: NodePtr);
-BEGIN                                    
+BEGIN {SaveTree}                                   
   IF Curr^.LeftTree <> NIL
   THEN
     SaveTree(Curr^.LeftTree);
@@ -116,15 +116,15 @@ BEGIN
   IF Curr^.RightTree <> NIL
   THEN
     SaveTree(Curr^.RightTree)
-END;
+END; {SaveTree}
 
 BEGIN {SaveStat}
   ASSIGN(OutFile, OutPath); 
   REWRITE(OutFile);
   SaveTree(Head);
   CLOSE(OutFile)
-END; {SaveStat}           
+END; {SaveStat} 
  
 BEGIN {TextStat}  
-  Head := NIL;
+  Head := NIL
 END. {TextStat}

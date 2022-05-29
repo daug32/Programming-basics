@@ -1,11 +1,12 @@
-UNIT TreeContainer;
-INTERFACE
+UNIT TextStat;
+INTERFACE   
 
-PROCEDURE InsertWord(Word: STRING);
-PROCEDURE SaveConatiner(OutPath: STRING);
+PROCEDURE CollectStat(InpPath: STRING);  
+PROCEDURE SaveStat(OutPath: STRING);
+PROCEDURE SetMaxFileSize(Size: INTEGER);
 
-IMPLEMENTATION
-USES 
+IMPLEMENTATION    
+USES  
   StringHandler;
 TYPE
   NodePtr = ^Node; 
@@ -13,10 +14,11 @@ TYPE
             Word: STRING;
             Count: INTEGER;
             LeftTree: NodePtr;
-            RightTree: NodePtr;
+            RightTree: NodePtr
           END; 
 VAR 
-  Head: NodePtr;  
+  Head: NodePtr;
+  MaxFileSize, ReadedSymbols: INTEGER;
 
 PROCEDURE ContructNode(VAR Element: NodePtr; VAR Word: STRING);
 BEGIN
@@ -78,11 +80,39 @@ BEGIN {SaveElement}
   IF Comparing = -1
   THEN
     Prev^.LeftTree := Curr
-  ELSe
-    Prev^.RightTree := Curr;
+  ELSE
+    Prev^.RightTree := Curr
 END; {SaveElement}
+    
+PROCEDURE CollectStat(InpPath: STRING);
+VAR {CollectStat}  
+  Inp: TEXT;
+  Word: STRING; 
+BEGIN    
+  ASSIGN(Inp, InpPath);
+  RESET(Inp);
+  
+  {Read words and save them}
+  WHILE NOT EOF(Inp)
+  DO 
+    BEGIN       
+      Word := ReadWord(Inp, ReadedSymbols, MaxFileSize);  
 
-PROCEDURE SaveConatiner(OutPath: STRING);
+      IF LENGTH(Word) > 0 
+      THEN
+        InsertWord(ToLower(Word)); 
+      
+      {Limiting the count of reading symbols}
+      IF (MaxFileSize > 0) AND
+         (ReadedSymbols > MaxFileSize)
+      THEN  
+        EXIT
+    END;
+
+  CLOSE(Inp)  
+END; {CollectStat} 
+ 
+PROCEDURE SaveStat(OutPath: STRING);
 VAR 
   OutFile: TEXT;
 
@@ -97,13 +127,20 @@ BEGIN
     SaveTree(Curr^.RightTree)
 END;
 
-BEGIN
+BEGIN {SaveStat}
   ASSIGN(OutFile, OutPath); 
   REWRITE(OutFile);
   SaveTree(Head);
   CLOSE(OutFile)
-END;
+END; {SaveStat} 
 
-BEGIN {TreeContainer}
+PROCEDURE SetMaxFileSize(Size: INTEGER);
+BEGIN {SetMaxFileSize}
+  MaxFileSize := Size;
+END; {SetMaxFileSize}
+ 
+BEGIN {TextStat}  
   Head := NIL;
-END. {TreeContainer}
+  ReadedSymbols := 0;
+  MaxFileSize := -1;
+END. {TextStat}
