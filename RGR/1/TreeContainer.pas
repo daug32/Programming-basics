@@ -17,9 +17,11 @@ TYPE
           END; 
 VAR 
   Head: NodePtr;
+  UniqueCount, TotalCount: INTEGER;
 
 PROCEDURE ContructNode(VAR Element: NodePtr; VAR Word: STRING);
-BEGIN
+BEGIN      
+  UniqueCount := UniqueCount + 1;
   NEW(Element); 
   Element^.Word := Word;
   Element^.Count := 1;
@@ -31,7 +33,8 @@ PROCEDURE InsertWord(Word: STRING);
 VAR   
   Prev, Curr: NodePtr;               
   Comparing: INTEGER;  
-BEGIN {SaveElement} 
+BEGIN {SaveElement}
+  TotalCount := TotalCount + 1; 
   {If the container is empty}
   IF Head = NIL
   THEN
@@ -93,17 +96,28 @@ BEGIN {SaveTree}
   WRITELN(OutFile, Curr^.Word, ' ', Curr^.Count);
   IF Curr^.RightTree <> NIL
   THEN
-    SaveTree(Curr^.RightTree)
+    SaveTree(Curr^.RightTree);
+  DISPOSE(Curr)
 END; {SaveTree}
 
-BEGIN {SaveContainer}   
+BEGIN {SaveContainer}  
+  WRITELN('Unique words: ', UniqueCount);
+  WRITELN('Total words: ', TotalCount);
+  
   ASSIGN(OutFile, OutPath); 
   REWRITE(OutFile);
-  SaveTree(Head);
+  SaveTree(Head); 
   WRITELN(OutFile);
-  CLOSE(OutFile)
+  CLOSE(OutFile);  
+
+  {Finish the cleaning}
+  Head := NIL;
+  TotalCount := 0;
+  UniqueCount := 0;
 END; {SaveContainer}
 
 BEGIN {TreeContainer} 
-  Head := NIL
+  Head := NIL;
+  TotalCount := 0;
+  UniqueCount := 0
 END. {TreeContainer}

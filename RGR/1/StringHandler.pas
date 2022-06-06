@@ -1,7 +1,7 @@
 UNIT StringHandler;
 INTERFACE 
                                       
-FUNCTION IsWordChar(Ch: CHAR) : BOOLEAN;
+FUNCTION IsLetter(Ch: CHAR) : BOOLEAN;
 FUNCTION ToLower(Str: STRING) : STRING;
 FUNCTION StringComparer(VAR A, B: STRING) : INTEGER;
      
@@ -12,14 +12,14 @@ FUNCTION ReadWord(
                                        
 IMPLEMENTATION          
 
-FUNCTION IsWordChar(Ch: CHAR) : BOOLEAN;
-BEGIN {WordChar}
-  IsWordChar := 
+FUNCTION IsLetter(Ch: CHAR) : BOOLEAN;
+BEGIN {IsLetter}
+  IsLetter := 
     ((Ch >= 'à') AND (Ch <= 'ÿ')) OR
     ((Ch >= 'a') AND (Ch <= 'z')) OR
     ((Ch >= 'À') AND (Ch <= 'ß')) OR 
-    ((Ch >= 'A') AND (Ch <= 'Z'));
-END; {WordChar}   
+    ((Ch >= 'A') AND (Ch <= 'Z'))
+END; {IsLetter}   
 
 FUNCTION ToLower(Str: STRING) : STRING;
 VAR 
@@ -40,7 +40,7 @@ BEGIN
         END
     END;  
   
-  ToLower := Str;
+  ToLower := Str
 END;
 
 FUNCTION StringComparer(VAR A, B: STRING) : INTEGER;
@@ -93,7 +93,8 @@ BEGIN {Comparer}
         END     
     END;
   
-  StringComparer := 0;  
+  {It will run if strings are equal}  
+  StringComparer := 0  
 END; {Comparer} 
 
 FUNCTION ReadWord(
@@ -110,7 +111,7 @@ BEGIN {ReadWord}
   Word := '';
   IsWord := TRUE;
 
-  WHILE (NOT IsWordChar(Ch)) AND (NOT EOF(Inp))
+  WHILE (NOT IsLetter(Ch)) AND (NOT EOF(Inp))
   DO
     BEGIN 
       READ(Inp, Ch);
@@ -128,7 +129,7 @@ BEGIN {ReadWord}
       PrevCh := Ch;
       READ(Inp, Ch);
          
-      IsWord := IsWordChar(Ch);
+      IsWord := IsLetter(Ch);
       {This willn't save words like this 
       'some-' with '-' at the end}
       IF IsWord OR (PrevCh <> '-')
@@ -148,7 +149,7 @@ BEGIN {ReadWord}
       IsWord := IsWord OR (Ch = '-')
     END;
 
-  IF IsWordChar(Ch) AND EOF(Inp) 
+  IF IsLetter(Ch) AND EOF(Inp) 
   THEN 
     Word := Word + Ch;
   

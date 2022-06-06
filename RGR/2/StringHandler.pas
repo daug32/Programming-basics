@@ -1,21 +1,22 @@
 UNIT StringHandler;
 INTERFACE 
                                       
-FUNCTION IsWordChar(Ch: CHAR) : BOOLEAN;
+FUNCTION IsLetter(Ch: CHAR) : BOOLEAN;
 FUNCTION ToLower(Str: STRING) : STRING;
 FUNCTION StringComparer(VAR A, B: STRING) : INTEGER;
 FUNCTION ReadWord(VAR Inp: TEXT) : STRING;
+FUNCTION ReadInt(VAR Inp: TEXT) : INTEGER;
                                        
 IMPLEMENTATION          
 
-FUNCTION IsWordChar(Ch: CHAR) : BOOLEAN;
-BEGIN {WordChar}
-  IsWordChar := 
+FUNCTION IsLetter(Ch: CHAR) : BOOLEAN;
+BEGIN {IsLetter}
+  IsLetter := 
     ((Ch >= 'à') AND (Ch <= 'ÿ')) OR
     ((Ch >= 'a') AND (Ch <= 'z')) OR
     ((Ch >= 'À') AND (Ch <= 'ß')) OR 
-    ((Ch >= 'A') AND (Ch <= 'Z'));
-END; {WordChar}   
+    ((Ch >= 'A') AND (Ch <= 'Z'))
+END; {IsLetter}   
 
 FUNCTION ToLower(Str: STRING) : STRING;
 VAR 
@@ -36,7 +37,7 @@ BEGIN
         END
     END;  
   
-  ToLower := Str;
+  ToLower := Str
 END;
 
 FUNCTION StringComparer(VAR A, B: STRING) : INTEGER;
@@ -89,7 +90,7 @@ BEGIN {Comparer}
         END     
     END;
   
-  StringComparer := 0;  
+  StringComparer := 0  
 END; {Comparer} 
 
 FUNCTION ReadWord(VAR Inp: TEXT) : STRING;
@@ -101,13 +102,14 @@ BEGIN {ReadWord}
   Ch := ' ';      
   PrevCh := ' ';    
   Word := '';
+  ReadWord := '';
   IsWord := TRUE;
 
-  WHILE NOT IsWordChar(Ch)
+  WHILE NOT IsLetter(Ch)
   DO
-    BEGIN
-      READ(Inp, Ch);
-      IF EOF(Inp) THEN EXIT
+    BEGIN 
+      IF EOF(Inp) THEN EXIT;
+      READ(Inp, Ch)
     END;
 
   WHILE IsWord
@@ -118,12 +120,12 @@ BEGIN {ReadWord}
       IF EOF(Inp) 
       THEN 
         BEGIN
-          ReadWord := Word;
+          ReadWord := Word + Ch;
           EXIT
         END;
       READ(Inp, Ch);
          
-      IsWord := IsWordChar(Ch);
+      IsWord := IsLetter(Ch);
       {This willn't save words like this 
       'some-' with '-' at the end}
       IF IsWord OR (PrevCh <> '-')
@@ -135,6 +137,60 @@ BEGIN {ReadWord}
   
   ReadWord := Word
 END; {ReadWord}
+
+FUNCTION ReadInt(VAR Inp: TEXT) : INTEGER;
+VAR  
+  Ch: CHAR;                   
+  MaxNumber: INTEGER; 
+  Digit, Res: INTEGER; 
+  MinDigitCode: INTEGER;
+BEGIN {ReadInt}
+  Ch := ' ';
+  Res := 0;
+  ReadInt := 0; 
+  MaxNumber := 32767;
+  MinDigitCode := ORD('0');
+      
+  WHILE (Ch < '0') OR (Ch > '9')
+  DO
+    BEGIN
+ 
+      IF EOF(Inp) 
+      THEN
+        BEGIN
+          WRITELN('Invalid int reading: no int found');
+          EXIT
+        END;
+
+      READ(Inp, Ch);
+    END;
+
+  WHILE (Ch >= '0') AND (Ch <= '9')
+  DO 
+    BEGIN  
+      Digit := ORD(Ch) - MinDigitCode;
+
+      IF ( Res > ((MaxNumber - Digit) DIV 10) )
+      THEN 
+        BEGIN  
+          WRITELN('Failed ToInt convertion: Integer overflow');   
+          EXIT
+        END;
+
+      Res := Res * 10 + Digit;
+ 
+      IF EOF(Inp) 
+      THEN 
+        BEGIN
+          ReadInt := Res;
+          EXIT
+        END;
+
+      READ(Inp, Ch)
+    END;
+  
+  ReadInt := Res
+END; {ReadInt}
 
 BEGIN {StringHandler}
 END. {StringHandler}

@@ -52,5 +52,5 @@ END; {SetMaxFileSize}
  
 BEGIN {TextStat}  
   ReadedSymbols := 0;
-  MaxFileSize := -1;
+  MaxFileSize := -1
 END. {TextStat}
