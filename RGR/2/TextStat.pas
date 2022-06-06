@@ -30,8 +30,6 @@ BEGIN
       IF LENGTH(Word) > 0 
       THEN
         InsertWord(ToLower(Word))
-      ELSE 
-        WRITELN('Oh my...');
 
       IF GetCount > MaxContainerSize
       THEN
