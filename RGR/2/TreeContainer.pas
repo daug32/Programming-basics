@@ -227,10 +227,10 @@ BEGIN {SaveContainer}
       WRITELN(OutFile, Word)
     END;
 
-  WRITELN('3');
+  WRITELN('3')
 END; {SaveContainer}
 
 BEGIN {TreeContainer}  
   Head := NIL;
-  Count := 0;
+  Count := 0
 END. {TreeContainer}
