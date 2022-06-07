@@ -1,10 +1,12 @@
 UNIT TreeContainer;
 INTERFACE 
-                           
-PROCEDURE Clear;                   
-FUNCTION GetCount: INTEGER;
+                                   
+PROCEDURE Init(OutPath: STRING);              
+
+PROCEDURE SaveContainer;
 PROCEDURE InsertWord(Word: STRING);
-PROCEDURE SaveContainer(VAR OutFile: TEXT);
+                         
+FUNCTION GetCount: INTEGER;             
 
 IMPLEMENTATION    
 USES  
@@ -48,29 +50,16 @@ BEGIN
   Element^.RightTree := NIL
 END;   
 
-PROCEDURE CollapseTree(Curr: NodePtr);
-BEGIN {CollapseTree} 
-  IF Curr^.LeftTree <> NIL
-  THEN
-    CollapseTree(Curr^.LeftTree);
-  IF Curr^.RightTree <> NIL
-  THEN
-    CollapseTree(Curr^.RightTree);   
-  Dispose(Curr)
-END; {CollapseTree}   
-
-PROCEDURE SaveTree(VAR Curr, Buffer: NodePtr; VAR CurrInserted, BufferInserted: BOOLEAN); 
+PROCEDURE SaveTree(Curr: NodePtr; VAR Buffer: Node; VAR BufferInserted: BOOLEAN); 
 VAR 
+	CurrInserted: BOOLEAN;
   CompareResult: INTEGER;
 BEGIN {SaveTree}                                   
   IF Curr^.LeftTree <> NIL
   THEN
-    SaveTree(Curr^.LeftTree);
+    SaveTree(Curr^.LeftTree, Buffer, BufferInserted);
        
-  {It is used for semantical indication of the insertion. 
-  Can be replaced by IF TRUE condition}
   CurrInserted := FALSE;
-
   WHILE NOT CurrInserted
   DO
     BEGIN
@@ -82,14 +71,14 @@ BEGIN {SaveTree}
           BREAK
         END;
       
-      {It will run if we had inserted the word}
       IF BufferInserted
       THEN
         BEGIN      
-          Buffer^.Word := ReadWord(OutFile);
-					READLN(OutFile, Buffer^.Count)
+          Buffer.Word := ReadWord(OutFile);
+					READLN(OutFile, Buffer.Count);
+					BufferInserted := FALSE;
         END;
-      CompareResult := StringComparer(Curr^.Word, Buffer^.Word);
+      CompareResult := StringComparer(Curr^.Word, Buffer.Word);
 
       {Current word goes before this word. So, insert the current}
       IF CompareResult = -1
@@ -104,7 +93,7 @@ BEGIN {SaveTree}
       IF CompareResult = 0
       THEN 
         BEGIN        
-          WRITELN(TempFile, Buffer^.Word, ' ', Curr^.Count + Buffer^.Count);   
+          WRITELN(TempFile, Buffer.Word, ' ', Curr^.Count + Buffer.Count);   
 					BufferInserted := TRUE;	
           CurrInserted := TRUE;					                                     
           BREAK
@@ -112,13 +101,13 @@ BEGIN {SaveTree}
    
       {CompareReult = 1
       Current word goes after this word. So, insert the previous one}
-      WRITELN(TempFile, Buffer^.Word, ' ', Buffer^.Count);
+      WRITELN(TempFile, Buffer.Word, ' ', Buffer.Count);
 			BufferInserted := TRUE
     END;
 
   IF Curr^.RightTree <> NIL
   THEN
-    SaveTree(Curr^.RightTree);
+    SaveTree(Curr^.RightTree, Buffer, BufferInserted);
 
   {Both branches are already saved. So, clean that leaf}
   DISPOSE(Curr)
@@ -127,18 +116,22 @@ END; {SaveTree}
 { =======================
   Public methods 
 ======================== }  
+
+PROCEDURE Init(OutPath: STRING);
+BEGIN {Init}  
+  Count := 0;      
+  Head := NIL;
+	ASSIGN(OutFile, OutPath);
+END; {Init}
     
+
+
 FUNCTION GetCount: INTEGER;
 BEGIN {GetCount}
   GetCount := Count
 END; {GetCount}
 
-PROCEDURE Clear;
-BEGIN {Clear} 
-  CollapseTree(Head); 
-  Head := NIL;
-  Count := 0
-END; {Clear} 
+
 
 PROCEDURE InsertWord(Word: STRING);
 VAR   
@@ -192,39 +185,38 @@ BEGIN {SaveElement}
     Prev^.LeftTree := Curr
   ELSE
     Prev^.RightTree := Curr
-END; {SaveElement}                       
+END; {SaveElement}   
+
+                    
 
 PROCEDURE SaveContainer;
-VAR            
-  TempFile: TEXT;  
-	BufferNode: Node; 
+	Buffer: Node; 
 	BufferInserted, CurrInserted: BOOLEAN;
 BEGIN {SaveContainer}                                         
-  WRITE('1');
-
+  WRITE('*');     
   RESET(OutFile);
-  REWRITE(TempFile);      
-	CurrInserted := FALSE; 
-	BufferInserted := FALSE;
+  REWRITE(TempFile); 
 
-  SaveTree(Head, Buffer, BufferInserted, CurrInserted);
+	Buffer.Word := '';
+	Buffer.Count := 0;  
+	BufferInserted := TRUE;
+
+  SaveTree(Head, Buffer, BufferInserted);
+
+  Head := NIL;
+  Count := 0;
 
   IF NOT BufferInserted
   THEN 
-    WRITELN(TempFile, Word, ' ', WordCount);  
-
-  Head := NIL;
-  Count := 0; 
+    WRITELN(TempFile, Buffer.Word, ' ', Buffer.Count);   
                 
-  WRITE('2');   
-	CopyFile(OutFile, TempFile);
+	CopyFile(OutFile, TempFile);   
   RESET(TempFile);
   REWRITE(OutFile);
 	CopyFile(TempFile, OutFile);
-  WRITELN('3')
+
+  WRITELN('+')
 END; {SaveContainer}
 
 BEGIN {TreeContainer}  
-  Head := NIL;
-  Count := 0
 END. {TreeContainer}
