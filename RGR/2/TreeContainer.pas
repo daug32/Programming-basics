@@ -122,14 +122,15 @@ BEGIN {Init}
   Count := 0;      
   Head := NIL;
 	ASSIGN(OutFile, OutPath);
+	REWRITE(OutFile);
 END; {Init}
-    
+             
 
 
 FUNCTION GetCount: INTEGER;
 BEGIN {GetCount}
   GetCount := Count
-END; {GetCount}
+END; {GetCount}  
 
 
 
@@ -190,17 +191,18 @@ END; {SaveElement}
                     
 
 PROCEDURE SaveContainer;
+VAR
 	Buffer: Node; 
-	BufferInserted, CurrInserted: BOOLEAN;
+	BufferInserted: BOOLEAN;
 BEGIN {SaveContainer}                                         
-  WRITE('*');     
+  WRITE('*'); 
+   
   RESET(OutFile);
-  REWRITE(TempFile); 
-
+  REWRITE(TempFile);  
+  
 	Buffer.Word := '';
 	Buffer.Count := 0;  
 	BufferInserted := TRUE;
-
   SaveTree(Head, Buffer, BufferInserted);
 
   Head := NIL;
