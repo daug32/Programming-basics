@@ -5,7 +5,6 @@ FUNCTION IsLetter(Ch: CHAR) : BOOLEAN;
 FUNCTION ToLower(Str: STRING) : STRING;
 FUNCTION StringComparer(VAR A, B: STRING) : INTEGER;
 FUNCTION ReadWord(VAR Inp: TEXT) : STRING;
-FUNCTION ReadInt(VAR Inp: TEXT) : INTEGER;
                                        
 IMPLEMENTATION          
 
@@ -137,60 +136,6 @@ BEGIN {ReadWord}
   
   ReadWord := Word
 END; {ReadWord}
-
-FUNCTION ReadInt(VAR Inp: TEXT) : INTEGER;
-VAR  
-  Ch: CHAR;                   
-  MaxNumber: INTEGER; 
-  Digit, Res: INTEGER; 
-  MinDigitCode: INTEGER;
-BEGIN {ReadInt}
-  Ch := ' ';
-  Res := 0;
-  ReadInt := 0; 
-  MaxNumber := 32767;
-  MinDigitCode := ORD('0');
-      
-  WHILE (Ch < '0') OR (Ch > '9')
-  DO
-    BEGIN
- 
-      IF EOF(Inp) 
-      THEN
-        BEGIN
-          WRITELN('Invalid int reading: no int found');
-          EXIT
-        END;
-
-      READ(Inp, Ch);
-    END;
-
-  WHILE (Ch >= '0') AND (Ch <= '9')
-  DO 
-    BEGIN  
-      Digit := ORD(Ch) - MinDigitCode;
-
-      IF ( Res > ((MaxNumber - Digit) DIV 10) )
-      THEN 
-        BEGIN  
-          WRITELN('Failed ToInt convertion: Integer overflow');   
-          EXIT
-        END;
-
-      Res := Res * 10 + Digit;
- 
-      IF EOF(Inp) 
-      THEN 
-        BEGIN
-          ReadInt := Res;
-          EXIT
-        END;
-
-      READ(Inp, Ch)
-    END;
-  
-  ReadInt := Res
-END; {ReadInt}
 
 BEGIN {StringHandler}
 END. {StringHandler}

@@ -19,6 +19,5 @@ BEGIN
   WRITELN('Collecting stat...');
   CollectStat(InpPath, OutPath);
   WRITELN('Done!') 
+	
 END.
-
-
