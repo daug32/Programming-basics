@@ -10,6 +10,7 @@ FUNCTION GetCount: INTEGER;
 
 IMPLEMENTATION    
 USES  
+	FileHandler,
   StringHandler;
 TYPE
   NodePtr = ^Node; 
@@ -28,37 +29,21 @@ VAR
   Private methods 
 ======================== }
 
-PROCEDURE CopyFile(VAR FromFile, ToFile: TEXT);
-VAR 
-	Str: STRING;
-BEGIN {CopyFile}
-  WHILE NOT EOF(FromFile)
-  DO 
-    BEGIN
-      READLN(FromFile, Str);
-      WRITELN(ToFile, Str)
-    END
-END; {CopyFile}
-
 PROCEDURE ConstructNode(VAR Element: NodePtr; VAR Word: STRING);
-BEGIN
+BEGIN {ConstructNode}
   Count := Count + 1;
   NEW(Element); 
   Element^.Word := Word;
   Element^.Count := 1;
   Element^.LeftTree := NIL;
   Element^.RightTree := NIL
-END;   
+END; {ConstructNode} 
 
-PROCEDURE SaveTree(Curr: NodePtr; VAR Buffer: Node; VAR BufferInserted: BOOLEAN); 
+PROCEDURE MergeNode(Curr: NodePtr; VAR Buffer: Node; VAR BufferInserted: BOOLEAN);
 VAR 
 	CurrInserted: BOOLEAN;
-  CompareResult: INTEGER;
-BEGIN {SaveTree}                                   
-  IF Curr^.LeftTree <> NIL
-  THEN
-    SaveTree(Curr^.LeftTree, Buffer, BufferInserted);
-       
+	CompareResult: INTEGER;
+BEGIN {MergeNode}  
   CurrInserted := FALSE;
   WHILE NOT CurrInserted
   DO
@@ -103,7 +88,21 @@ BEGIN {SaveTree}
       Current word goes after this word. So, insert the previous one}
       WRITELN(TempFile, Buffer.Word, ' ', Buffer.Count);
 			BufferInserted := TRUE
-    END;
+    END
+END; {MergeNode}
+
+
+
+PROCEDURE SaveTree(Curr: NodePtr; VAR Buffer: Node; VAR BufferInserted: BOOLEAN); 
+VAR 
+	CurrInserted: BOOLEAN;
+  CompareResult: INTEGER;
+BEGIN {SaveTree}                                   
+  IF Curr^.LeftTree <> NIL
+  THEN
+    SaveTree(Curr^.LeftTree, Buffer, BufferInserted);
+       
+	MergeNode(Curr, Buffer, BufferInserted);
 
   IF Curr^.RightTree <> NIL
   THEN
@@ -112,6 +111,35 @@ BEGIN {SaveTree}
   {Both branches are already saved. So, clean that leaf}
   DISPOSE(Curr)
 END; {SaveTree}
+
+
+
+PROCEDURE SaveInFile;
+VAR
+	Buffer: Node; 
+	BufferInserted: BOOLEAN;
+BEGIN {SaveInFile}        
+  RESET(OutFile);
+  REWRITE(TempFile);  
+	BufferInserted := TRUE;
+  SaveTree(Head, Buffer, BufferInserted);
+
+	// Finish the cleaning
+  Head := NIL;
+  Count := 0;
+
+  IF NOT BufferInserted
+  THEN 
+    WRITELN(TempFile, Buffer.Word, ' ', Buffer.Count);   
+  
+	// Copy elements that wasn't copied yet              
+	CopyFile(OutFile, TempFile);   
+
+	// Save in main file
+  RESET(TempFile);
+  REWRITE(OutFile);
+	CopyFile(TempFile, OutFile) 
+END; {SaveInFile}
 
 { =======================
   Public methods 
@@ -185,39 +213,14 @@ BEGIN {SaveElement}
   THEN
     Prev^.LeftTree := Curr
   ELSE
-    Prev^.RightTree := Curr
+    Prev^.RightTree := Curr  
 END; {SaveElement}   
 
                     
 
 PROCEDURE SaveContainer;
-VAR
-	Buffer: Node; 
-	BufferInserted: BOOLEAN;
 BEGIN {SaveContainer}                                         
-  WRITE('*'); 
-   
-  RESET(OutFile);
-  REWRITE(TempFile);  
-  
-	Buffer.Word := '';
-	Buffer.Count := 0;  
-	BufferInserted := TRUE;
-  SaveTree(Head, Buffer, BufferInserted);
-
-  Head := NIL;
-  Count := 0;
-
-  IF NOT BufferInserted
-  THEN 
-    WRITELN(TempFile, Buffer.Word, ' ', Buffer.Count);   
-                
-	CopyFile(OutFile, TempFile);   
-  RESET(TempFile);
-  REWRITE(OutFile);
-	CopyFile(TempFile, OutFile);
-
-  WRITELN('+')
+	SaveInFile
 END; {SaveContainer}
 
 BEGIN {TreeContainer}  

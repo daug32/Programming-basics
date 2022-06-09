@@ -14,7 +14,7 @@ BEGIN
   InpPath := 'Dictionary.txt';
   OutPath := 'Output.txt';
   
-  SetMaxContainerSize(40000);
+  SetMaxContainerSize(500);
   
   WRITELN('Collecting stat...');
   CollectStat(InpPath, OutPath);

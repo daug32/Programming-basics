@@ -11,6 +11,8 @@ USES
 VAR
   MaxContainerSize: INTEGER;
     
+
+
 PROCEDURE CollectStat(InpPath, OutPath: STRING);
 VAR {CollectStat}  
   InpFile, OutFile: TEXT;
@@ -40,15 +42,19 @@ BEGIN
   CLOSE(InpFile)  
 END; {CollectStat} 
 
+
+
 PROCEDURE SetMaxContainerSize(Count: INTEGER);
-BEGIN
+BEGIN {SetMaxContainerSize}
   IF Count >= 1 
   THEN
     MaxContainerSize := Count
   ELSE 
     WRITELN('Invalid max count of container''s elements: ', Count)
-END;
+END; {SetMaxContainerSize}
  
+
+
 BEGIN {TextStat}  
   MaxContainerSize := 20000
 END. {TextStat}
