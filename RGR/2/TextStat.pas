@@ -11,13 +11,15 @@ USES
 VAR
   MaxContainerSize: INTEGER;
     
+
+
 PROCEDURE CollectStat(InpPath, OutPath: STRING);
 VAR {CollectStat}  
   InpFile, OutFile: TEXT;
   Word: STRING; 
 BEGIN    
-  ASSIGN(OutFile, OutPath);
-  REWRITE(OutFile);
+	TreeContainer.Init(OutPath);
+
   ASSIGN(InpFile, InpPath);
   RESET(InpFile); 
                      
@@ -33,23 +35,26 @@ BEGIN
 
       IF GetCount > MaxContainerSize
       THEN
-        SaveContainer(OutFile)
+        SaveContainer
     END;
   
-  SaveContainer(OutFile);
-  CLOSE(OutFile);
+  SaveContainer;
   CLOSE(InpFile)  
 END; {CollectStat} 
 
+
+
 PROCEDURE SetMaxContainerSize(Count: INTEGER);
-BEGIN
+BEGIN {SetMaxContainerSize}
   IF Count >= 1 
   THEN
     MaxContainerSize := Count
   ELSE 
     WRITELN('Invalid max count of container''s elements: ', Count)
-END;
+END; {SetMaxContainerSize}
  
+
+
 BEGIN {TextStat}  
   MaxContainerSize := 20000
 END. {TextStat}

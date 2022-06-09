@@ -1,13 +1,16 @@
 UNIT TreeContainer;
 INTERFACE 
-                           
-PROCEDURE Clear;                   
-FUNCTION GetCount: INTEGER;
+                                   
+PROCEDURE Init(OutPath: STRING);              
+
+PROCEDURE SaveContainer;
 PROCEDURE InsertWord(Word: STRING);
-PROCEDURE SaveContainer(VAR OutFile: TEXT);
+                         
+FUNCTION GetCount: INTEGER;             
 
 IMPLEMENTATION    
 USES  
+	FileHandler,
   StringHandler;
 TYPE
   NodePtr = ^Node; 
@@ -20,47 +23,144 @@ TYPE
 VAR 
   Head: NodePtr;
   Count: INTEGER; 
+	TempFile, OutFile: TEXT;
 
 { =======================
   Private methods 
 ======================== }
 
 PROCEDURE ConstructNode(VAR Element: NodePtr; VAR Word: STRING);
-BEGIN
+BEGIN {ConstructNode}
   Count := Count + 1;
   NEW(Element); 
   Element^.Word := Word;
   Element^.Count := 1;
   Element^.LeftTree := NIL;
   Element^.RightTree := NIL
-END;   
+END; {ConstructNode} 
 
-PROCEDURE CollapseTree(Curr: NodePtr);
-BEGIN {CollapseTree} 
+PROCEDURE MergeNode(Curr: NodePtr; VAR Buffer: Node; VAR BufferInserted: BOOLEAN);
+VAR 
+	CurrInserted: BOOLEAN;
+	CompareResult: INTEGER;
+BEGIN {MergeNode}  
+  CurrInserted := FALSE;
+  WHILE NOT CurrInserted
+  DO
+    BEGIN
+      IF EOF(OutFile)
+      THEN 
+        BEGIN                               
+          WRITELN(TempFile, Curr^.Word, ' ', Curr^.Count);
+          CurrInserted := TRUE;
+          BREAK
+        END;
+      
+      IF BufferInserted
+      THEN
+        BEGIN      
+          Buffer.Word := ReadWord(OutFile);
+					READLN(OutFile, Buffer.Count);
+					BufferInserted := FALSE;
+        END;
+      CompareResult := StringComparer(Curr^.Word, Buffer.Word);
+
+      {Current word goes before this word. So, insert the current}
+      IF CompareResult = -1
+      THEN 
+        BEGIN   
+          WRITELN(TempFile, Curr^.Word, ' ', Curr^.Count);
+          CurrInserted := TRUE;
+          BREAK
+        END;
+                                         
+      {Current word is the same with this word. So, insert them as one}
+      IF CompareResult = 0
+      THEN 
+        BEGIN        
+          WRITELN(TempFile, Buffer.Word, ' ', Curr^.Count + Buffer.Count);   
+					BufferInserted := TRUE;	
+          CurrInserted := TRUE;					                                     
+          BREAK
+        END;
+   
+      {CompareReult = 1
+      Current word goes after this word. So, insert the previous one}
+      WRITELN(TempFile, Buffer.Word, ' ', Buffer.Count);
+			BufferInserted := TRUE
+    END
+END; {MergeNode}
+
+
+
+PROCEDURE SaveTree(Curr: NodePtr; VAR Buffer: Node; VAR BufferInserted: BOOLEAN); 
+VAR 
+	CurrInserted: BOOLEAN;
+  CompareResult: INTEGER;
+BEGIN {SaveTree}                                   
   IF Curr^.LeftTree <> NIL
   THEN
-    CollapseTree(Curr^.LeftTree);
+    SaveTree(Curr^.LeftTree, Buffer, BufferInserted);
+       
+	MergeNode(Curr, Buffer, BufferInserted);
+
   IF Curr^.RightTree <> NIL
   THEN
-    CollapseTree(Curr^.RightTree);   
-  Dispose(Curr)
-END; {CollapseTree}   
+    SaveTree(Curr^.RightTree, Buffer, BufferInserted);
+
+  {Both branches are already saved. So, clean that leaf}
+  DISPOSE(Curr)
+END; {SaveTree}
+
+
+
+PROCEDURE SaveInFile;
+VAR
+	Buffer: Node; 
+	BufferInserted: BOOLEAN;
+BEGIN {SaveInFile}        
+  RESET(OutFile);
+  REWRITE(TempFile);  
+	BufferInserted := TRUE;
+  SaveTree(Head, Buffer, BufferInserted);
+
+	// Finish the cleaning
+  Head := NIL;
+  Count := 0;
+
+  IF NOT BufferInserted
+  THEN 
+    WRITELN(TempFile, Buffer.Word, ' ', Buffer.Count);   
+  
+	// Copy elements that wasn't copied yet              
+	CopyFile(OutFile, TempFile);   
+
+	// Save in main file
+  RESET(TempFile);
+  REWRITE(OutFile);
+	CopyFile(TempFile, OutFile) 
+END; {SaveInFile}
 
 { =======================
   Public methods 
 ======================== }  
-    
+
+PROCEDURE Init(OutPath: STRING);
+BEGIN {Init}  
+  Count := 0;      
+  Head := NIL;
+	ASSIGN(OutFile, OutPath);
+	REWRITE(OutFile);
+END; {Init}
+             
+
+
 FUNCTION GetCount: INTEGER;
 BEGIN {GetCount}
   GetCount := Count
-END; {GetCount}
+END; {GetCount}  
 
-PROCEDURE Clear;
-BEGIN {Clear} 
-  CollapseTree(Head); 
-  Head := NIL;
-  Count := 0
-END; {Clear} 
+
 
 PROCEDURE InsertWord(Word: STRING);
 VAR   
@@ -113,124 +213,15 @@ BEGIN {SaveElement}
   THEN
     Prev^.LeftTree := Curr
   ELSE
-    Prev^.RightTree := Curr
-END; {SaveElement}                       
+    Prev^.RightTree := Curr  
+END; {SaveElement}   
 
-PROCEDURE SaveContainer(VAR OutFile: TEXT);
-VAR             
-  Word: STRING; 
-  TempFile: TEXT;  
-  CompareResult, WordCount: INTEGER;
+                    
 
-PROCEDURE SaveTree(Curr: NodePtr);
-VAR                                                       
-  IsInserted: BOOLEAN;   
-BEGIN {SaveTree}                                   
-  IF Curr^.LeftTree <> NIL
-  THEN
-    SaveTree(Curr^.LeftTree);
-       
-  {It is used for semantical indication of the insertion. 
-  Can be replaced by IF TRUE condition}
-  IsInserted := FALSE;
-
-  WHILE NOT IsInserted 
-  DO
-    BEGIN
-      IF EOF(OutFile)
-      THEN 
-        BEGIN                               
-          WRITELN(TempFile, Curr^.Word, ' ', Curr^.Count);
-          IsInserted := TRUE;
-          BREAK
-        END;
-      
-      {It will run if we had inserted the word}
-      IF Word = ''
-      THEN
-        BEGIN
-          Word := ReadWord(OutFile);
-          WordCount := ReadInt(OutFile)
-        END;
-      CompareResult := StringComparer(Curr^.Word, Word);
-
-      {Current word goes before this word. So, insert the current}
-      IF CompareResult = -1
-      THEN 
-        BEGIN   
-          WRITELN(TempFile, Curr^.Word, ' ', Curr^.Count);
-          IsInserted := TRUE;
-          BREAK
-        END;
-                                         
-      {Current word is the same with this word. So, insert them as one}
-      IF CompareResult = 0
-      THEN 
-        BEGIN        
-          WordCount := Curr^.Count + WordCount;
-          WRITELN(TempFile, Word, ' ', WordCount); 
-          IsInserted := TRUE;
-          Word := '';
-          BREAK
-        END;
-   
-      {CompareReult = 1
-      Current word goes after this word. So, insert the previous one}
-      WRITELN(TempFile, Word, ' ', WordCount);
-      Word := ''
-    END;
-
-  IF Curr^.RightTree <> NIL
-  THEN
-    SaveTree(Curr^.RightTree);
-
-  {Both branches are already saved. So, clean that leaf}
-  DISPOSE(Curr)
-END; {SaveTree}
-
-BEGIN {SaveContainer} 
-  Word := '';        
-  CompareResult := 0;                                          
-  RESET(OutFile);
-  REWRITE(TempFile); 
-
-  {Clean the tree and 
-  Merge virtual container and the output file into temp file} 
-  WRITE('1');
-  SaveTree(Head);
-  WRITE('2');
-
-  {In this case last Word wasn't written yet}
-  IF CompareResult = -1
-  THEN 
-    WRITELN(TempFile, Word, ' ', WordCount);
-
-  {Finish the cleaning}
-  Head := NIL;
-  Count := 0;
-
-  {Copy elements that wasn't copied yet}   
-  WHILE NOT EOF(OutFile)
-  DO 
-    BEGIN
-      READLN(OutFile, Word);
-      WRITELN(TempFile, Word);
-    END; 
-               
-  {Save data to the main file}
-  RESET(TempFile);
-  REWRITE(OutFile);
-  WHILE NOT EOF(TempFile)
-  DO 
-    BEGIN
-      READLN(TempFile, Word);
-      WRITELN(OutFile, Word)
-    END;
-
-  WRITELN('3')
+PROCEDURE SaveContainer;
+BEGIN {SaveContainer}                                         
+	SaveInFile
 END; {SaveContainer}
 
 BEGIN {TreeContainer}  
-  Head := NIL;
-  Count := 0
 END. {TreeContainer}
